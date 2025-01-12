@@ -1,6 +1,6 @@
 Creating a web application that mimics Google Sheets involves designing an intuitive user interface (UI) and implementing core spreadsheet functionalities. Here's how you can approach it:
 
-                                                                                Tech Stack
+                                                                       Tech Stack
 1.Frontend:
          Framework: React.js (for modular, component-based UI).
          State Management: Redux or React Context (to handle data and dependencies).
