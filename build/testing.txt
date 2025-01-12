@@ -1,0 +1,211 @@
+To provide a testing interface for users to interact with the implemented functions, we need to create a clean and intuitive environment. This interface will allow users to input their data, apply the mathematical and data quality functions, and view the results immediately.
+
+Implementation Plan
+1. User Interaction Interface
+Create a spreadsheet-like grid where users can:
+Enter data into cells.
+Select a range of cells to apply a function.
+Choose a function from a dropdown menu.
+Execute the function and display the result.
+2. Result Display
+Show function results in:
+A designated "results pane" below or beside the spreadsheet.
+Optionally, allow the results to overwrite the original cells or be written to a new range.
+3. Functional Testing Workflow
+Input Data:
+Users enter data directly into the spreadsheet cells.
+Select Function:
+A dropdown menu lists available functions (e.g., SUM, TRIM, REMOVE_DUPLICATES).
+Select Range:
+Users select a range of cells to apply the function.
+Execute and Display Results:
+Results are calculated and displayed in the results pane.
+
+Code Implementation
+Here’s a working example using React to build the interface:
+1. Main Component: Spreadsheet with Function Testing
+
+import React, { useState } from "react";
+
+// Import helper functions
+import { calculateFormula, trimCell, upperCell, lowerCell, removeDuplicates, findAndReplace } from "./functions";
+
+const SpreadsheetTester = () => {
+    const [spreadsheetData, setSpreadsheetData] = useState({
+        A1: "10", A2: "20", A3: "30",
+        B1: "Hello", B2: " World ", B3: "HELLO",
+        C1: "2025-01-01", C2: "Duplicate", C3: "Duplicate"
+    });
+    const [selectedFunction, setSelectedFunction] = useState("");
+    const [selectedRange, setSelectedRange] = useState([]);
+    const [result, setResult] = useState("");
+
+    // Handle function execution
+    const handleFunctionExecution = () => {
+        let output = "";
+        const values = selectedRange.map(cell => spreadsheetData[cell] || "");
+
+        switch (selectedFunction) {
+            case "SUM":
+            case "AVERAGE":
+            case "MAX":
+            case "MIN":
+            case "COUNT":
+                output = calculateFormula(`${selectedFunction}(${selectedRange.join(",")})`, spreadsheetData);
+                break;
+            case "TRIM":
+                output = values.map(trimCell).join(", ");
+                break;
+            case "UPPER":
+                output = values.map(upperCell).join(", ");
+                break;
+            case "LOWER":
+                output = values.map(lowerCell).join(", ");
+                break;
+            case "REMOVE_DUPLICATES":
+                output = removeDuplicates(selectedRange, spreadsheetData).map(row => row.join(", ")).join("\n");
+                break;
+            case "FIND_AND_REPLACE":
+                output = findAndReplace(selectedRange, spreadsheetData, "Duplicate", "Unique");
+                break;
+            default:
+                output = "Invalid Function";
+        }
+
+        setResult(output);
+    };
+
+    return (
+        <div>
+            <h2>Spreadsheet Tester</h2>
+
+            {/* Spreadsheet Grid */}
+            <div className="spreadsheet-grid">
+                {Object.entries(spreadsheetData).map(([cellId, value]) => (
+                    <div
+                        key={cellId}
+                        className={`cell ${selectedRange.includes(cellId) ? "selected" : ""}`}
+                        onClick={() => setSelectedRange(prev => [...new Set([...prev, cellId])])}
+                    >
+                        {value}
+                    </div>
+                ))}
+            </div>
+
+            {/* Function Selection */}
+            <div>
+                <h3>Select a Function:</h3>
+                <select value={selectedFunction} onChange={(e) => setSelectedFunction(e.target.value)}>
+                    <option value="">--Select Function--</option>
+                    <option value="SUM">SUM</option>
+                    <option value="AVERAGE">AVERAGE</option>
+                    <option value="MAX">MAX</option>
+                    <option value="MIN">MIN</option>
+                    <option value="COUNT">COUNT</option>
+                    <option value="TRIM">TRIM</option>
+                    <option value="UPPER">UPPER</option>
+                    <option value="LOWER">LOWER</option>
+                    <option value="REMOVE_DUPLICATES">REMOVE_DUPLICATES</option>
+                    <option value="FIND_AND_REPLACE">FIND_AND_REPLACE</option>
+                </select>
+            </div>
+
+            {/* Execute Function */}
+            <button onClick={handleFunctionExecution}>Execute Function</button>
+
+            {/* Display Result */}
+            <div>
+                <h3>Results:</h3>
+                <textarea value={result} readOnly rows="10" cols="50" />
+            </div>
+        </div>
+    );
+};
+
+export default SpreadsheetTester;
+
+
+2. Supporting Functions
+Ensure the helper functions (calculateFormula, trimCell, etc.) are implemented as described previously. Here’s an example for reference:
+
+
+// Example TRIM function
+export const trimCell = (value) => (typeof value === "string" ? value.trim() : value);
+
+// Example REMOVE_DUPLICATES
+export const removeDuplicates = (range, spreadsheetData) => {
+    const seen = new Set();
+    const uniqueRows = [];
+
+    range.forEach(cell => {
+        const value = spreadsheetData[cell] || "";
+        if (!seen.has(value)) {
+            seen.add(value);
+            uniqueRows.push([cell, value]);
+        }
+    });
+
+    return uniqueRows;
+};
+
+Features
+Interactive Grid:
+
+Users can click cells to select a range.
+Cell data is dynamically displayed and updated.
+Dropdown Function Selection:
+
+Users select a function from the dropdown menu.
+Results Pane:
+
+Results of function execution are displayed in a text area for easy visibility.
+
+Styling Example
+css
+Copy code
+.spreadsheet-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 100px);
+    gap: 2px;
+    margin-bottom: 20px;
+}
+
+.cell {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: center;
+    cursor: pointer;
+}
+
+.cell.selected {
+    background-color: #eef;
+}
+
+textarea {
+    margin-top: 10px;
+    width: 100%;
+}
+How It Works
+Spreadsheet Grid:
+
+Displays current cell data.
+Allows users to click cells to select a range.
+Function Execution:
+
+Dropdown menu provides available functions.
+Executes the selected function on the specified range.
+Results Pane:
+
+Displays results of the executed function.
+For functions like REMOVE_DUPLICATES, shows cleaned data or logs changes.
+Extensions
+Real-Time Updates:
+
+Update results in real time as users select or change cell data.
+Save & Load Data:
+
+Allow users to upload or download spreadsheet data for testing.
+Error Handling:
+
+Provide detailed error messages for invalid inputs or selections.
+

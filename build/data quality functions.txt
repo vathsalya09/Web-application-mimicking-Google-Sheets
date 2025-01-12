@@ -1,0 +1,151 @@
+Here’s how we can implement the requested data quality functions (TRIM, UPPER, LOWER, REMOVE_DUPLICATES, FIND_AND_REPLACE) in JavaScript. These functions will manipulate cell data dynamically and can be integrated into the web application's spreadsheet grid. 
+
+
+Implementation
+1. TRIM: Remove Leading and Trailing Whitespace
+
+function trimCell(value) {
+    if (typeof value === 'string') {
+        return value.trim();
+    }
+    return value; // Non-string values remain unchanged
+}
+
+// Example usage
+console.log(trimCell("  Hello World  ")); // Output: "Hello World"
+
+
+
+2. UPPER: Convert Text to Uppercase
+
+function upperCell(value) {
+    if (typeof value === 'string') {
+        return value.toUpperCase();
+    }
+    return value; // Non-string values remain unchanged
+}
+
+// Example usage
+console.log(upperCell("hello world")); // Output: "HELLO WORLD
+
+
+3. LOWER: Convert Text to Lowercase
+
+function lowerCell(value) {
+    if (typeof value === 'string') {
+        return value.toLowerCase();
+    }
+    return value; // Non-string values remain unchanged
+}
+
+// Example usage
+console.log(lowerCell("HELLO WORLD")); // Output: "hello world"
+
+
+4. REMOVE_DUPLICATES: Remove Duplicate Rows from a Range
+
+function removeDuplicates(range, spreadsheetData) {
+    const seen = new Set();
+    const uniqueRows = [];
+
+    for (let row of range) {
+        const rowData = row.map(cell => spreadsheetData[cell] || ""); // Get data for all cells in the row
+        const rowKey = JSON.stringify(rowData); // Serialize row to detect duplicates
+        if (!seen.has(rowKey)) {
+            seen.add(rowKey);
+            uniqueRows.push(row);
+        }
+    }
+
+    return uniqueRows;
+}
+
+// Example usage
+const spreadsheetData = {
+    A1: "John", B1: "Doe", C1: "25",
+    A2: "Jane", B2: "Smith", C2: "30",
+    A3: "John", B3: "Doe", C3: "25", // Duplicate row
+};
+
+const range = [
+    ["A1", "B1", "C1"],
+    ["A2", "B2", "C2"],
+    ["A3", "B3", "C3"]
+];
+
+console.log(removeDuplicates(range, spreadsheetData));
+// Output: [["A1", "B1", "C1"], ["A2", "B2", "C2"]]
+
+5. FIND_AND_REPLACE: Find and Replace Specific Text
+
+function findAndReplace(range, spreadsheetData, findText, replaceText) {
+    const updatedCells = {};
+
+    range.forEach(cell => {
+        if (spreadsheetData[cell] && typeof spreadsheetData[cell] === 'string') {
+            updatedCells[cell] = spreadsheetData[cell].replace(new RegExp(findText, 'g'), replaceText);
+        } else {
+            updatedCells[cell] = spreadsheetData[cell]; // Keep non-string values unchanged
+        }
+    });
+
+    return updatedCells; // Return updated cells for batch update
+}
+
+// Example usage
+const spreadsheetDataExample = {
+    A1: "Hello World",
+    A2: "Hello There",
+    A3: "World Hello"
+};
+
+const rangeExample = ["A1", "A2", "A3"];
+
+console.log(findAndReplace(rangeExample, spreadsheetDataExample, "Hello", "Hi"));
+// Output: { A1: "Hi World", A2: "Hi There", A3: "World Hi" }
+
+
+
+Integration into the Web Application
+Data Storage & Handling:
+
+Maintain spreadsheet data as an object where keys are cell IDs (e.g., A1, B2) and values are the corresponding cell data.
+Applying Functions:
+
+When a function is selected (e.g., TRIM, UPPER, LOWER), allow users to select the range of cells to apply the function.
+Use the respective function to modify the data and re-render the affected cells.
+Example Integration in React:
+
+javascript
+Copy code
+const applyFunction = (func, range) => {
+    const updatedData = { ...spreadsheetData };
+    range.forEach(cell => {
+        updatedData[cell] = func(spreadsheetData[cell]);
+    });
+    setSpreadsheetData(updatedData); // Update state to re-render cells
+};
+
+// Example: Apply UPPER function
+applyFunction(upperCell, ['A1', 'A2', 'A3']);
+For REMOVE_DUPLICATES:
+
+Allow users to select a range of rows, detect duplicates, and return the updated range after removal.
+For FIND_AND_REPLACE:
+
+Create an input form where users can specify:
+Find Text
+Replace Text
+Range of cells.
+Apply the findAndReplace function to the specified range and update the data.
+
+Extensions
+UI for Range Selection:
+
+Allow users to select ranges visually (e.g., drag to highlight cells) and pass these ranges to functions.
+Error Handling:
+
+Show error messages if invalid ranges are selected or inputs are incompatible.
+Batch Updates:
+
+Optimize large-scale operations (e.g., REMOVE_DUPLICATES) to avoid performance issues in massive spreadsheets.
